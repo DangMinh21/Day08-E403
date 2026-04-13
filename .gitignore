@@ -6,9 +6,7 @@ day08/PLAN.md
 venv/
 .env
 
-lab/chroma_db/
 lab/.env
 
 */__pycache__/
-*/choroma_db/
 */.env

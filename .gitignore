@@ -11,3 +11,4 @@ venv/
 
 lab/chroma_db/
 lab/.env
+.vscode/

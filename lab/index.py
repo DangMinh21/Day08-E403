@@ -184,8 +184,10 @@ def build_index():
         processed = preprocess_document(raw_text, str(doc_path))
         chunks = chunk_document(processed["text"], CHUNK_SIZE, CHUNK_OVERLAP)
 
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks):
+            chunk_id = f"{doc_path.stem}_{i}"
             collection.upsert(
+                ids=[chunk_id],
                 documents=[chunk],
                 metadatas=[processed["metadata"]]
             )

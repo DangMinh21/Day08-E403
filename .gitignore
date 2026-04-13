@@ -8,3 +8,6 @@ day08/PLAN.md
 */__pycache__
 venv/
 .env
+
+lab/chroma_db/
+lab/.env

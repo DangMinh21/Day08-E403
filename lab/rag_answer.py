@@ -378,7 +378,10 @@ def build_grounded_prompt(query: str, context_block: str) -> str:
     """
     prompt = f"""Answer only from the retrieved context below.
 If the context is insufficient to answer the question, say you do not know and do not make up information.
-Cite the source field (in brackets like [1]) when possible.
+If the context does not fully address the question, state what information is missing, and then provide any related or general information from the context that might be helpful. Do not make up any information not present in the context.
+
+Cite the source field (in brackets like [1]) at the end of each relevant sentence or phrase.
+
 Keep your answer short, clear, and factual.
 Respond in the same language as the question.
 

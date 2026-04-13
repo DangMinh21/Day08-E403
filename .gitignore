@@ -1,13 +1,14 @@
-.DS_Store
-*.swp
-*~
 
-# Grading questions — không public trước 17:00
+
 day08/lab/data/grading_questions.json
 day08/PLAN.md
-*/__pycache__
+*/pycache
 venv/
 .env
 
 lab/chroma_db/
 lab/.env
+
+*/__pycache__/
+*/choroma_db/
+*/.env

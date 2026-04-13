@@ -1,0 +1,155 @@
+[
+  {
+    "id": "q01",
+    "query": "SLA xử lý ticket P1 là bao lâu?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "policy/refund-v4.pdf",
+      "support/sla-p1-2026.pdf"
+    ],
+    "hybrid_sources": [
+      "policy/refund-v4.pdf",
+      "support/sla-p1-2026.pdf"
+    ],
+    "dense_answer": "SLA xử lý ticket P1 là 4 giờ để khắc phục và 15 phút để phản hồi ban đầu [1].",
+    "hybrid_answer": "SLA xử lý ticket P1 là 4 giờ để khắc phục và 15 phút để phản hồi ban đầu kể từ khi ticket được tạo [1]."
+  },
+  {
+    "id": "q02",
+    "query": "Khách hàng có thể yêu cầu hoàn tiền trong bao nhiêu ngày?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "hybrid_sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "dense_answer": "Khách hàng có thể yêu cầu hoàn tiền trong vòng 7 ngày làm việc kể từ thời điểm xác nhận đơn hàng [1].",
+    "hybrid_answer": "Khách hàng có thể yêu cầu hoàn tiền trong vòng 7 ngày làm việc kể từ thời điểm xác nhận đơn hàng [1]."
+  },
+  {
+    "id": "q03",
+    "query": "Ai phải phê duyệt để cấp quyền Level 3?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "hr/leave-policy-2026.pdf",
+      "it/access-control-sop.md"
+    ],
+    "hybrid_sources": [
+      "it/access-control-sop.md"
+    ],
+    "dense_answer": "Để cấp quyền Level 3, cần phê duyệt của Line Manager, IT Admin và IT Security [1].",
+    "hybrid_answer": "Để cấp quyền Level 3, cần có sự phê duyệt của Line Manager, IT Admin và IT Security [2]."
+  },
+  {
+    "id": "q04",
+    "query": "Sản phẩm kỹ thuật số có được hoàn tiền không?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "hybrid_sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "dense_answer": "Sản phẩm kỹ thuật số không được hoàn tiền, trừ khi có lỗi do nhà sản xuất và đáp ứng các điều kiện khác [1].",
+    "hybrid_answer": "Sản phẩm kỹ thuật số không được hoàn tiền, trừ khi có lỗi do nhà sản xuất và đáp ứng các điều kiện khác [1]."
+  },
+  {
+    "id": "q05",
+    "query": "Tài khoản bị khóa sau bao nhiêu lần đăng nhập sai?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "it/access-control-sop.md",
+      "support/helpdesk-faq.md"
+    ],
+    "hybrid_sources": [
+      "policy/refund-v4.pdf",
+      "support/helpdesk-faq.md"
+    ],
+    "dense_answer": "Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp. Để mở khóa, liên hệ IT Helpdesk hoặc tự reset qua portal SSO [1].",
+    "hybrid_answer": "Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp. Để mở khóa, liên hệ IT Helpdesk hoặc tự reset qua portal SSO [1]."
+  },
+  {
+    "id": "q06",
+    "query": "Escalation trong sự cố P1 diễn ra như thế nào?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "it/access-control-sop.md",
+      "support/sla-p1-2026.pdf"
+    ],
+    "hybrid_sources": [
+      "it/access-control-sop.md",
+      "support/sla-p1-2026.pdf"
+    ],
+    "dense_answer": "Escalation trong sự cố P1 diễn ra như sau:  1. On-call engineer nhận alert hoặc ticket và xác nhận severity trong 5 phút. 2. Nếu không có phản hồi trong 10 phút, ticket sẽ tự động escalate lên Senior Engineer. 3. Lead Engineer phân công engineer xử lý trong 10 phút. 4. Engineer cập nhật tiến độ lên ticket mỗi 30 phút và nếu cần hỗ trợ thêm, sẽ escalate ngay.  Quy trình này đảm bảo rằng sự cố P1 được xử lý kịp thời và hiệu quả [2][3].",
+    "hybrid_answer": "Escalation trong sự cố P1 diễn ra như sau: On-call IT Admin có thể cấp quyền tạm thời (tối đa 24 giờ) sau khi được Tech Lead phê duyệt bằng lời. Sau 24 giờ, phải có ticket chính thức hoặc quyền sẽ bị thu hồi tự động. Tất cả quyền tạm thời phải được ghi log vào hệ thống Security Audit [1]."
+  },
+  {
+    "id": "q07",
+    "query": "Approval Matrix để cấp quyền hệ thống là tài liệu nào?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "it/access-control-sop.md"
+    ],
+    "hybrid_sources": [
+      "it/access-control-sop.md"
+    ],
+    "dense_answer": "Approval Matrix để cấp quyền hệ thống là tài liệu quy định quy trình cấp phép truy cập vào các hệ thống nội bộ của công ty, áp dụng cho tất cả nhân viên, contractor, và third-party vendor [1].",
+    "hybrid_answer": "Approval Matrix để cấp quyền hệ thống là tài liệu quy định quy trình cấp phép truy cập vào các hệ thống nội bộ của công ty [1]."
+  },
+  {
+    "id": "q08",
+    "query": "Nhân viên được làm remote tối đa mấy ngày mỗi tuần?",
+    "dense_abstain": false,
+    "hybrid_abstain": false,
+    "dense_sources": [
+      "hr/leave-policy-2026.pdf",
+      "it/access-control-sop.md"
+    ],
+    "hybrid_sources": [
+      "hr/leave-policy-2026.pdf",
+      "it/access-control-sop.md"
+    ],
+    "dense_answer": "Nhân viên được làm remote tối đa 2 ngày mỗi tuần sau khi hoàn thành thời gian thử việc, và lịch remote phải được phê duyệt bởi Team Lead qua HR Portal [1].",
+    "hybrid_answer": "Nhân viên được làm remote tối đa 2 ngày mỗi tuần sau khi hoàn thành thời gian thử việc [1]."
+  },
+  {
+    "id": "q09",
+    "query": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+    "dense_abstain": false,
+    "hybrid_abstain": true,
+    "dense_sources": [
+      "it/access-control-sop.md",
+      "support/helpdesk-faq.md"
+    ],
+    "hybrid_sources": [
+      "it/access-control-sop.md",
+      "support/helpdesk-faq.md",
+      "support/sla-p1-2026.pdf"
+    ],
+    "dense_answer": "ERR-403-AUTH là lỗi liên quan đến quyền truy cập, thường xảy ra khi người dùng không có quyền truy cập vào tài nguyên yêu cầu. Cách xử lý có thể bao gồm việc tạo yêu cầu cấp quyền qua Jira và chờ phê duyệt từ Line Manager, sau đó IT Admin sẽ kiểm tra và cấp quyền nếu đủ điều kiện [1].",
+    "hybrid_answer": "Tôi không biết."
+  },
+  {
+    "id": "q10",
+    "query": "Nếu cần hoàn tiền khẩn cấp cho khách hàng VIP, quy trình có khác không?",
+    "dense_abstain": true,
+    "hybrid_abstain": true,
+    "dense_sources": [
+      "policy/refund-v4.pdf"
+    ],
+    "hybrid_sources": [
+      "it/access-control-sop.md",
+      "policy/refund-v4.pdf"
+    ],
+    "dense_answer": "Không có thông tin nào trong bối cảnh đề cập đến quy trình hoàn tiền khẩn cấp cho khách hàng VIP. Tôi không biết.",
+    "hybrid_answer": "Không có thông tin cụ thể nào trong bối cảnh về việc quy trình hoàn tiền cho khách hàng VIP có khác biệt hay không. Do đó, tôi không biết."
+  }
+]

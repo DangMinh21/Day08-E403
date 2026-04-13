@@ -8,3 +8,5 @@ day08/PLAN.md
 
 venv/
 .env
+
+lab/.env

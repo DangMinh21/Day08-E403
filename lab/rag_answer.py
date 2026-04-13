@@ -83,23 +83,33 @@ def retrieve_sparse(query: str, top_k: int = TOP_K_SEARCH) -> List[Dict[str, Any
 
     TODO Sprint 3 (nếu chọn hybrid):
     1. Cài rank_bm25: pip install rank-bm25
-    2. Load tất cả chunks từ ChromaDB (hoặc rebuild từ docs)
-    3. Tokenize và tạo BM25Index
-    4. Query và trả về top_k kết quả
-
-    Gợi ý:
-        from rank_bm25 import BM25Okapi
-        corpus = [chunk["text"] for chunk in all_chunks]
-        tokenized_corpus = [doc.lower().split() for doc in corpus]
-        bm25 = BM25Okapi(tokenized_corpus)
-        tokenized_query = query.lower().split()
-        scores = bm25.get_scores(tokenized_query)
-        top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
     """
-    # TODO Sprint 3: Implement BM25 search
-    # Tạm thời return empty list
-    print("[retrieve_sparse] Chưa implement — Sprint 3")
-    return []
+    from chromadb import PersistentClient
+    from index import CHROMA_DB_DIR
+    from rank_bm25 import BM25Okapi
+
+    client = PersistentClient(path=str(CHROMA_DB_DIR))
+    collection = client.get_collection("rag_lab")
+    
+    all_data = collection.get(include=["documents", "metadatas"])
+    documents = all_data["documents"]
+    metadatas = all_data["metadatas"]
+    
+    if not documents:
+        return []
+
+    tokenized_corpus = [doc.lower().split() for doc in documents]
+    bm25 = BM25Okapi(tokenized_corpus)
+    tokenized_query = query.lower().split()
+    scores = bm25.get_scores(tokenized_query)
+    
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
+    
+    return [{
+        "text": documents[i],
+        "metadata": metadatas[i],
+        "score": float(scores[i])
+    } for i in top_indices if scores[i] > 0]
 
 
 # =============================================================================
@@ -135,10 +145,31 @@ def retrieve_hybrid(
     - Corpus có cả câu tự nhiên VÀ tên riêng, mã lỗi, điều khoản
     - Query như "Approval Matrix" khi doc đổi tên thành "Access Control SOP"
     """
-    # TODO Sprint 3: Implement hybrid RRF
-    # Tạm thời fallback về dense
-    print("[retrieve_hybrid] Chưa implement RRF — fallback về dense")
-    return retrieve_dense(query, top_k)
+    dense_results = retrieve_dense(query, top_k=top_k)
+    sparse_results = retrieve_sparse(query, top_k=top_k)
+    
+    rrf_scores = {}
+    doc_map = {}
+
+    for rank, doc in enumerate(dense_results):
+        key = doc["text"]
+        rrf_scores[key] = rrf_scores.get(key, 0) + dense_weight * (1.0 / (60 + rank))
+        doc_map[key] = doc
+        
+    for rank, doc in enumerate(sparse_results):
+        key = doc["text"]
+        rrf_scores[key] = rrf_scores.get(key, 0) + sparse_weight * (1.0 / (60 + rank))
+        doc_map[key] = doc
+
+    sorted_keys = sorted(rrf_scores.keys(), key=lambda k: rrf_scores[k], reverse=True)[:top_k]
+    
+    hybrid_results = []
+    for key in sorted_keys:
+        doc = doc_map[key]
+        doc["score"] = rrf_scores[key]
+        hybrid_results.append(doc)
+        
+    return hybrid_results
 
 
 # =============================================================================
@@ -176,8 +207,19 @@ def rerank(
     - Dense/hybrid trả về nhiều chunk nhưng có noise
     - Muốn chắc chắn chỉ 3-5 chunk tốt nhất vào prompt
     """
-    # TODO Sprint 3: Implement rerank
-    # Tạm thời trả về top_k đầu tiên (không rerank)
+    if not candidates:
+        return []
+        
+    from sentence_transformers import CrossEncoder
+    model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    
+    pairs = [[query, c["text"]] for c in candidates]
+    scores = model.predict(pairs)
+    
+    for i, c in enumerate(candidates):
+        c["rerank_score"] = float(scores[i])
+        
+    candidates.sort(key=lambda x: x.get("rerank_score", 0), reverse=True)
     return candidates[:top_k]
 
 
@@ -303,10 +345,21 @@ def call_llm(prompt: str) -> str:
 
     Lưu ý: Dùng temperature=0 hoặc thấp để output ổn định cho evaluation.
     """
-    raise NotImplementedError(
-        "TODO Sprint 2: Implement call_llm().\n"
-        "Chọn Option A (OpenAI) hoặc Option B (Gemini) trong TODO comment."
+    from openai import OpenAI
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    
+    # Sử dụng model gpt-4o-mini hoặc gpt-3.5-turbo tùy config
+    response = client.chat.completions.create(
+        model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        messages=[
+            {"role": "system", "content": "You are a helpful and factual AI assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0,
+        max_tokens=1000,
     )
+    return response.choices[0].message.content
+
 
 
 def rag_answer(

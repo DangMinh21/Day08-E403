@@ -50,6 +50,21 @@ VARIANT_CONFIG = {
     "label": "variant_hybrid_rerank",
 }
 
+def _call_judge_llm(prompt: str) -> Dict[str, Any]:
+    """Helper function to call LLM as a judge and return structured score."""
+    import os
+    from openai import OpenAI
+    import json
+    
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "system", "content": "You are an objective QA evaluator. Output ONLY valid JSON."},
+                  {"role": "user", "content": prompt}],
+        temperature=0,
+        response_format={"type": "json_object"}
+    )
+    return json.loads(response.choices[0].message.content)
 
 # =============================================================================
 # SCORING FUNCTIONS
@@ -59,23 +74,35 @@ VARIANT_CONFIG = {
 def score_faithfulness(answer: str, chunks_used: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Evaluate if the answer is grounded in the retrieved chunks.
+
+    Returns a dict with score (1-5) and reason.
     """
-    # Placeholder logic for manual scoring
-    return {
-        "score": 5,  # Assume perfect grounding for now
-        "notes": "Answer is fully grounded in retrieved chunks."
-    }
+    context = "\n\n".join([c["text"] for c in chunks_used])
+    prompt = f"""
+    Rank the FAITHFULNESS of the answer based ONLY on the context.
+    Context: {context}
+    Answer: {answer}
+    Score 1-5. 5 means every claim in the answer is supported by context. 1 means hallucination.
+    Return JSON: {{"score": int, "reason": "string"}}
+    """
+    res = _call_judge_llm(prompt)
+    return {"score": res.get("score"), "notes": res.get("reason")}
 
 def score_answer_relevance(query: str, answer: str) -> Dict[str, Any]:
     """
     Evaluate if the answer directly addresses the query.
-    """
-    # Placeholder logic for manual scoring
-    return {
-        "score": 5,  # Assume perfect relevance for now
-        "notes": "Answer directly addresses the query."
-    }
 
+    Returns a dict with score (1-5) and reason.
+    """
+    prompt = f"""
+    Rank the RELEVANCE of the answer to the query.
+    Query: {query}
+    Answer: {answer}
+    Score 1-5. 5 means the answer directly and completely answers the question.
+    Return JSON: {{"score": int, "reason": "string"}}
+    """
+    res = _call_judge_llm(prompt)
+    return {"score": res.get("score"), "notes": res.get("reason")}
 
 def score_context_recall(chunks_used: List[Dict[str, Any]], expected_sources: List[str]) -> Dict[str, Any]:
     """
@@ -149,14 +176,19 @@ def score_completeness(query: str, answer: str, expected_answer: str) -> Dict[st
          Rate completeness 1-5. Are all key points covered?
          Output: {'score': int, 'missing_points': [str]}"
     """
-    return {
-        "score": None,
-        "notes": "TODO: Implement score_completeness (so sánh với expected_answer)",
-    }
-
+    prompt = f"""
+    Compare the model's answer to the expected ground truth.
+    Query: {query}
+    Expected: {expected_answer}
+    Actual: {answer}
+    Score 1-5 based on how many key points from 'Expected' are present in 'Actual'.
+    Return JSON: {{"score": int, "reason": "string"}}
+    """
+    res = _call_judge_llm(prompt)
+    return {"score": res.get("score"), "notes": res.get("reason")}
 
 # =============================================================================
-# SCORECARD RUNNER
+# EXECUTION / MAIN RUNNER
 # =============================================================================
 
 def run_scorecard(
@@ -418,49 +450,38 @@ if __name__ == "__main__":
 
     # --- Chạy Baseline ---
     print("\n--- Chạy Baseline ---")
-    print("Lưu ý: Cần hoàn thành Sprint 2 trước khi chạy scorecard!")
-    try:
-        baseline_results = run_scorecard(
-            config=BASELINE_CONFIG,
-            test_questions=test_questions,
-            verbose=True,
-        )
+    baseline_results = run_scorecard(
+        config=BASELINE_CONFIG,
+        test_questions=test_questions,
+        verbose=True,
+    )
 
-        # Save scorecard
-        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-        baseline_md = generate_scorecard_summary(baseline_results, "baseline_dense")
-        scorecard_path = RESULTS_DIR / "scorecard_baseline.md"
-        scorecard_path.write_text(baseline_md, encoding="utf-8")
-        print(f"\nScorecard lưu tại: {scorecard_path}")
-
-    except NotImplementedError:
-        print("Pipeline chưa implement. Hoàn thành Sprint 2 trước.")
-        baseline_results = []
+    # Save scorecard
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    baseline_md = generate_scorecard_summary(baseline_results, "baseline_dense")
+    (RESULTS_DIR / "scorecard_baseline.md").write_text(baseline_md, encoding="utf-8")
 
     # --- Chạy Variant (sau khi Sprint 3 hoàn thành) ---
-    # TODO Sprint 4: Uncomment sau khi implement variant trong rag_answer.py
-    # print("\n--- Chạy Variant ---")
-    # variant_results = run_scorecard(
-    #     config=VARIANT_CONFIG,
-    #     test_questions=test_questions,
-    #     verbose=True,
-    # )
-    # variant_md = generate_scorecard_summary(variant_results, VARIANT_CONFIG["label"])
-    # (RESULTS_DIR / "scorecard_variant.md").write_text(variant_md, encoding="utf-8")
+    print("\n--- Chạy Variant ---")
+    variant_results = run_scorecard(
+        config=VARIANT_CONFIG,
+        test_questions=test_questions,
+        verbose=True,
+    )
+    variant_md = generate_scorecard_summary(variant_results, VARIANT_CONFIG["label"])
+    (RESULTS_DIR / "scorecard_variant.md").write_text(variant_md, encoding="utf-8")
 
     # --- A/B Comparison ---
-    # TODO Sprint 4: Uncomment sau khi có cả baseline và variant
-    # if baseline_results and variant_results:
-    #     compare_ab(
-    #         baseline_results,
-    #         variant_results,
-    #         output_csv="ab_comparison.csv"
-    #     )
+    if baseline_results and variant_results:
+        compare_ab(
+            baseline_results,
+            variant_results,
+            output_csv="ab_comparison.csv"
+        )
 
-    print("\n\nViệc cần làm Sprint 4:")
-    print("  1. Hoàn thành Sprint 2 + 3 trước")
-    print("  2. Chấm điểm thủ công hoặc implement LLM-as-Judge trong score_* functions")
-    print("  3. Chạy run_scorecard(BASELINE_CONFIG)")
-    print("  4. Chạy run_scorecard(VARIANT_CONFIG)")
-    print("  5. Gọi compare_ab() để thấy delta")
-    print("  6. Cập nhật docs/tuning-log.md với kết quả và nhận xét")
+    print("\nSprint 4 Evaluation Finished!")
+    print("Checklist:")
+    print("  1. Review results/scorecard_baseline.md")
+    print("  2. Review results/scorecard_variant.md")
+    print("  3. Check results/ab_comparison.csv")
+    print("  4. Update docs/tuning-log.md with results and observations")
